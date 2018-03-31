@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1">
+		<style>
+body {
+	background: black;
+	margin: 0;
+	overflow: hidden;
+}
+
+video {
+	max-height: 100vh;
+	width: 100vw;
+}
+		</style>
+		<title>Tommy Cam Time-Lapse</title>
+	</head>
+	<body>
+		<video id="video" src="tomlapse.mp4" poster="tomlapse.jpg" autoplay loop muted playsinline></video>
+		<script>
+window.setInterval(function() {
+	let now = new Date();
+	video.src = "tomlapse.mp4?t=" + now.getTime();
+}, 60000);
+		</script>
+	</body>
+</html>
