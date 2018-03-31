@@ -100,9 +100,6 @@ func SyncFrame() error {
 	if _, err := io.Copy(w, resp.Body); err != nil {
 		return err
 	}
-	frame.Close()
-	current.Close()
-	resp.Body.Close()
 	fmt.Println(name)
 	if err := GenerateList(); err != nil {
 		return err
