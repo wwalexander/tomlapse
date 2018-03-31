@@ -26,7 +26,7 @@ func FrameList() ([]string, error) {
 	var frames []string
 	for _, file := range files {
 		name := file.Name()
-		if strings.HasSuffix(name, ".jpg") && name != "tomlapse.jpg" {
+		if strings.HasSuffix(name, ".jpg") {
 			frames = append(frames, name)
 		}
 	}
@@ -80,33 +80,6 @@ func GetFrame() error {
 	return nil
 }
 
-func CreatePoster() error {
-	if err := GetFrame(); err != nil {
-		return err
-	}
-	frames, err := FrameList()
-	if err != nil {
-		return err
-	}
-	if len(frames) == 0 {
-		return nil
-	}
-	frame, err := os.Open(frames[0])
-	if err != nil {
-		return err
-	}
-	defer frame.Close()
-	poster, err := os.Create("tomlapse.jpg")
-	if err != nil {
-		return err
-	}
-	defer poster.Close()
-	if _, err := io.Copy(poster, frame); err != nil {
-		return err
-	}
-	return nil
-}
-
 func GenerateListFile() error {
 	frames, err := FrameList()
 	if err != nil {
@@ -124,9 +97,6 @@ func GenerateListFile() error {
 }
 
 func Update() error {
-	if err := GetFrame(); err != nil {
-		return err
-	}
 	if err := GetFrame(); err != nil {
 		return err
 	}
@@ -156,15 +126,12 @@ func Update() error {
 }
 
 func main() {
-	if err := CreatePoster(); err != nil {
-		log.Fatal(err)
-	}
 	for {
 		go func() {
 			if err := Update(); err != nil {
 				log.Println(err)
 			}
 		}()
-		time.Sleep(30*time.Second)
+		time.Sleep(30 * time.Second)
 	}
 }
