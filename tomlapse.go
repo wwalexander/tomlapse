@@ -13,7 +13,6 @@ import (
 )
 
 const format = "20060102T150405Z0700"
-const ext = ".jpg"
 
 func FrameList() ([]string, error) {
 	dir, err := os.Getwd()
@@ -27,30 +26,88 @@ func FrameList() ([]string, error) {
 	var frames []string
 	for _, file := range files {
 		name := file.Name()
-		if strings.HasSuffix(name, ext) && name != "tomlapse.jpg" {
+		if strings.HasSuffix(name, ".jpg") && name != "tomlapse.jpg" {
 			frames = append(frames, name)
 		}
 	}
 	return frames, nil
 }
 
-func LastFrameTime() (*time.Time, error) {
+func LastFrameTime() (time.Time, error) {
 	frames, err := FrameList()
 	if err != nil {
-		return nil, err
+		return time.Time{}, err
 	}
 	if len(frames) == 0 {
-		return &time.Time{}, nil
+		return time.Time{}, nil
 	}
-	lastName := strings.TrimSuffix(frames[len(frames)-1], ext)
+	lastName := strings.TrimSuffix(frames[len(frames)-1], ".jpg")
 	lastTime, err := time.Parse(format, lastName)
 	if err != nil {
-		return nil, err
+		return time.Time{}, err
 	}
-	return &lastTime, nil
+	return lastTime, nil
 }
 
-func GenerateList() error {
+func GetFrame() error {
+	resp, err := http.Get("https://www.usc.edu/cameras/tommycam.jpg")
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	lastModified := resp.Header.Get("Last-Modified")
+	frameTime, err := time.Parse(time.RFC1123, lastModified)
+	if err != nil {
+		return err
+	}
+	lastFrameTime, err := LastFrameTime()
+	if err != nil {
+		return err
+	}
+	if !frameTime.After(lastFrameTime) {
+		return nil
+	}
+	name := frameTime.Format(format) + ".jpg"
+	log.Println(name)
+	frame, err := os.Create(name)
+	if err != nil {
+		return err
+	}
+	defer frame.Close()
+	if _, err := io.Copy(frame, resp.Body); err != nil {
+		return err
+	}
+	return nil
+}
+
+func CreatePoster() error {
+	if err := GetFrame(); err != nil {
+		return err
+	}
+	frames, err := FrameList()
+	if err != nil {
+		return err
+	}
+	if len(frames) == 0 {
+		return nil
+	}
+	frame, err := os.Open(frames[0])
+	if err != nil {
+		return err
+	}
+	defer frame.Close()
+	poster, err := os.Create("tomlapse.jpg")
+	if err != nil {
+		return err
+	}
+	defer poster.Close()
+	if _, err := io.Copy(poster, frame); err != nil {
+		return err
+	}
+	return nil
+}
+
+func GenerateListFile() error {
 	frames, err := FrameList()
 	if err != nil {
 		return err
@@ -66,42 +123,14 @@ func GenerateList() error {
 	return nil
 }
 
-func SyncFrame() error {
-	resp, err := http.Get("https://www.usc.edu/cameras/tommycam.jpg")
-	if err != nil {
+func Update() error {
+	if err := GetFrame(); err != nil {
 		return err
 	}
-	defer resp.Body.Close()
-	lastModified := resp.Header.Get("Last-Modified")
-	frameTime, err := time.Parse(time.RFC1123, lastModified)
-	if err != nil {
+	if err := GetFrame(); err != nil {
 		return err
 	}
-	lastFrameTime, err := LastFrameTime()
-	if err != nil {
-		return err
-	}
-	fmt.Println(frameTime, lastFrameTime)
-	if !frameTime.After(*lastFrameTime) {
-		return nil
-	}
-	current, err := os.Create("tomlapse.jpg")
-	if err != nil {
-		return err
-	}
-	defer current.Close()
-	name := frameTime.Format(format) + ".jpg"
-	frame, err := os.Create(name)
-	if err != nil {
-		return err
-	}
-	defer frame.Close()
-	w := io.MultiWriter(current, frame)
-	if _, err := io.Copy(w, resp.Body); err != nil {
-		return err
-	}
-	fmt.Println(name)
-	if err := GenerateList(); err != nil {
+	if err := GenerateListFile(); err != nil {
 		return err
 	}
 	cmd := exec.Command(
@@ -114,6 +143,7 @@ func SyncFrame() error {
 		"-c:v", "libx264",
 		"-crf", "18",
 		"-f", "mp4",
+		"-movflags", "+faststart",
 		"tomlapse.mp4.tmp",
 	)
 	if err := cmd.Run(); err != nil {
@@ -125,16 +155,16 @@ func SyncFrame() error {
 	return nil
 }
 
-func Update() {
-	if err := SyncFrame(); err != nil {
-		log.Println(err)
-		return
-	}
-}
-
 func main() {
+	if err := CreatePoster(); err != nil {
+		log.Fatal(err)
+	}
 	for {
-		go Update()
+		go func() {
+			if err := Update(); err != nil {
+				log.Println(err)
+			}
+		}()
 		time.Sleep(30*time.Second)
 	}
 }

@@ -20,10 +20,17 @@ video {
 	<body>
 		<video id="video" src="tomlapse.mp4" poster="tomlapse.jpg" autoplay loop muted playsinline></video>
 		<script>
+let video = document.getElementById("video");
+
 window.setInterval(function() {
-	let now = (new Date()).getTime();
-	video.src = "tomlapse.mp4?t=" + now;
-	video.poster = "tomlapse.mp4?t=" + now;
+	let currentTime = video.currentTime;
+	video.src = "tomlapse.mp4?t=" + (new Date()).getTime();
+
+	video.oncanplay = function() {
+		video.currentTime = currentTime;
+	}
+
+	video.play();
 }, 60000);
 		</script>
 	</body>
