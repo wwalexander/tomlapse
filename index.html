@@ -18,12 +18,13 @@ video {
 		<title>Tommy Cam Time-Lapse</title>
 	</head>
 	<body>
-		<video id="video" src="tomlapse.mp4" poster="tomlapse.jpg" autoplay loop muted playsinline></video>
+		<video id="video" src="tomlapse.mp4" poster="tomlapse.jpg" preload="metadata" autoplay loop muted playsinline></video>
 		<script>
 window.setInterval(function() {
-	let now = new Date();
-	video.src = "tomlapse.mp4?t=" + now.getTime();
-}, 60000);
+	let now = (new Date()).getTime();
+	video.src = "tomlapse.mp4?t=" + now;
+	video.poster = "tomlapse.mp4?t=" + now;
+}, 5000);
 		</script>
 	</body>
 </html>
