@@ -133,9 +133,8 @@ func Update() {
 }
 
 func main() {
-	ticker := time.NewTicker(55 * time.Second)
-	go Update()
-	for range ticker.C {
+	for {
 		go Update()
+		time.Sleep(30*time.Second)
 	}
 }
