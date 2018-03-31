@@ -26,11 +26,21 @@ func FrameList() ([]string, error) {
 	var frames []string
 	for _, file := range files {
 		name := file.Name()
-		if strings.HasSuffix(name, ".jpg") {
-			frames = append(frames, name)
+		if !strings.HasSuffix(name, ".jpg") {
+			continue
 		}
+		frames = append(frames, name)
 	}
 	return frames, nil
+}
+
+func nameToTime(name string) (time.Time, error) {
+	name = strings.TrimSuffix(name, ".jpg")
+	t, err := time.Parse(format, name)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return t, nil
 }
 
 func LastFrameTime() (time.Time, error) {
@@ -41,8 +51,7 @@ func LastFrameTime() (time.Time, error) {
 	if len(frames) == 0 {
 		return time.Time{}, nil
 	}
-	lastName := strings.TrimSuffix(frames[len(frames)-1], ".jpg")
-	lastTime, err := time.Parse(format, lastName)
+	lastTime, err := nameToTime(frames[len(frames)-1])
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -80,17 +89,28 @@ func GetFrame() error {
 	return nil
 }
 
-func GenerateListFile() error {
+func MakeListFile() error {
 	frames, err := FrameList()
 	if err != nil {
 		return err
+	}
+	var start int
+	for i := len(frames) - 1; i >= 0; i-- {
+		t, err := nameToTime(frames[i])
+		if err != nil {
+			return err
+		}
+		if time.Since(t) >= 24*time.Hour {
+			start = i
+			break
+		}
 	}
 	list, err := os.Create("mylist.txt")
 	if err != nil {
 		return err
 	}
 	defer list.Close()
-	for _, frame := range frames {
+	for _, frame := range frames[start:] {
 		fmt.Fprintf(list, "file '%s'\n", frame)
 	}
 	return nil
@@ -100,7 +120,7 @@ func Update() error {
 	if err := GetFrame(); err != nil {
 		return err
 	}
-	if err := GenerateListFile(); err != nil {
+	if err := MakeListFile(); err != nil {
 		return err
 	}
 	cmd := exec.Command(

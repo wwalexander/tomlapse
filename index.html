@@ -18,20 +18,21 @@ video {
 		<title>Tommy Cam Time-Lapse</title>
 	</head>
 	<body>
-		<video id="video" src="tomlapse.mp4" autoplay loop muted playsinline></video>
+		<video id="video" src="tomlapse.mp4" autoplay muted playsinline></video>
 		<script>
 let video = document.getElementById("video");
+let prev = Date.now();
 
-window.setInterval(function() {
-	let currentTime = video.currentTime;
-	video.src = "tomlapse.mp4?t=" + (new Date()).getTime();
+video.onended = function() {
+	let now = Date.now();
 
-	video.oncanplay = function() {
-		video.currentTime = currentTime;
+	if (now - prev >= 60000) {
+		video.src = "tomlapse.mp4?t=" + now;
+		prev = now;
 	}
 
 	video.play();
-}, 60000);
+}
 		</script>
 	</body>
 </html>
