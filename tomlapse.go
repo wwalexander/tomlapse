@@ -122,6 +122,9 @@ func Update() error {
 	if err := os.Rename("tomlapse.mp4.tmp", "tomlapse.mp4"); err != nil {
 		return err
 	}
+	if err := os.Remove("mylist.txt"); err != nil {
+		return err
+	}
 	return nil
 }
 
