@@ -77,7 +77,6 @@ func GetFrame() error {
 		return nil
 	}
 	name := frameTime.Format(format) + ".jpg"
-	log.Println(name)
 	frame, err := os.Create(name)
 	if err != nil {
 		return err
@@ -86,6 +85,7 @@ func GetFrame() error {
 	if _, err := io.Copy(frame, resp.Body); err != nil {
 		return err
 	}
+	log.Println(name)
 	return nil
 }
 
@@ -149,12 +149,13 @@ func Update() error {
 }
 
 func main() {
-	for {
-		go func() {
-			if err := Update(); err != nil {
-				log.Println(err)
-			}
-		}()
-		time.Sleep(30 * time.Second)
+	if err := Update(); err != nil {
+		log.Println(err)
+	}
+	ticker := time.NewTicker(30 * time.Second)
+	for range ticker.C {
+		if err := Update(); err != nil {
+			log.Println(err)
+		}
 	}
 }
