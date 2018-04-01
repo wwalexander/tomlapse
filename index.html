@@ -26,7 +26,7 @@ let prev = Date.now();
 video.onended = function() {
 	let now = Date.now();
 
-	if (now - prev >= 60000) {
+	if (now - prev >= 600000) {
 		video.src = "tomlapse.mp4?t=" + now;
 		prev = now;
 	}
