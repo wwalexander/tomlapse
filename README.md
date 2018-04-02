@@ -11,3 +11,8 @@ second called tomlapse.mp4. tomlapse requires the [FFmpeg](https://ffmpeg.org/)
 command-line tool in order to create the video.
 
 index.html plays tomlapse.mp4 in a loop, occasionally reloading the video.
+
+Building
+--------
+
+    go build
