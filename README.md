@@ -1,7 +1,7 @@
 tomlapse
 ========
 
-<video src="https://github.com/wwalexander/tomlapse/blob/master/tomlapse.mp4?raw=true" />
+![Tommy Cam time-lapse](https://github.com/wwalexander/tomlapse/blob/master/tomlapse.gif)
 
 tomlapse polls USC's [Tommy Cam](https://web-app.usc.edu/tommycam/) webcam image
 and assembles the result into a time-lapse video.
