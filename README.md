@@ -1,6 +1,9 @@
 tomlapse
 ========
 
+As of 2019-05-16, Tommy Cam is a live video feed, and the image endpoint has
+been removed.
+
 ![Tommy Cam time-lapse](https://github.com/wwalexander/tomlapse/blob/master/tomlapse.gif)
 
 tomlapse polls USC's [Tommy Cam](https://web-app.usc.edu/tommycam/) webcam image
